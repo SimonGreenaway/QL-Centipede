@@ -10,7 +10,7 @@
 library lib;
 
 sprite player;
-unsigned int playerFrames;
+sprite player_bullet;
 
 sprite mushrooms[MUSHX][MUSHY];
 
@@ -79,18 +79,26 @@ int main(int argc,char *argv[])
         player.x=128;
         player.y=252-8;
 
+        spriteSetup(&player_bullet,"PB");
+        spriteAddImageFromLibrary(&player_bullet,&lib,9);
+
+        player_bullet.active=0;
+        player_bullet.currentImage=0;
+        player_bullet.draw=1;
+        player_bullet.mask=0;
+
 	cls(SCREEN);
 
 	setupMushrooms();
 	spritePlot(SCREEN,&player);
 
-	playerFrames=getFrames();
+	player.timer.value=getFrames();
 
 	while(1)
 	{
 		unsigned int f=getFrames();
 
-		if(f>playerFrames)
+		if(f>player.timer.value)
 		{
 			unsigned int key=keyrow(1);
 			unsigned int newx=player.x,newy=player.y;
@@ -109,7 +117,35 @@ int main(int argc,char *argv[])
 				spritePlot(SCREEN,&player);
 			}
 
-			playerFrames=getFrames()+1;
+			if((key&64)&&!player_bullet.active)
+			{
+				player_bullet.active=1;
+				player_bullet.x=player.x+3;
+				player_bullet.y=player.y-8;
+				player_bullet.timer.value=f;
+				spritePlot(SCREEN,&player_bullet);
+			}
+
+			player.timer.value=getFrames()+1;
+		}
+
+		if(player_bullet.active&&(f>player_bullet.timer.value))
+		{
+			player_bullet.mask=1; player_bullet.draw=0;
+			spritePlot(SCREEN,&player_bullet);
+
+			if(player_bullet.y<4)
+			{
+				player_bullet.active=0;
+			}
+			else
+			{
+				player_bullet.y-=4;
+				player_bullet.mask=0; player_bullet.draw=1;
+				spritePlot(SCREEN,&player_bullet);
+			}
+
+			player_bullet.timer.value=f+1;
 		}
 	}
 }
