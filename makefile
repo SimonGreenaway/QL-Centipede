@@ -3,7 +3,7 @@ COPTS=-O3 -fomit-frame-pointer -std=gnu9x
 centipede:	libsprite.a centipede.o
 	qgcc qdos-gcc -o centipede centipede.o -lsprite
 
-centipede.o:	centipede.c makefile
+centipede.o:	libsprite.a centipede.c makefile
 		qgcc qdos-gcc $(COPTS) -o centipede.o -c centipede.c
 
 libsprite.a:
