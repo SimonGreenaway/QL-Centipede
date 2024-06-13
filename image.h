@@ -100,7 +100,7 @@ struct sprite
 	unsigned int active;
 
 	unsigned int images;
-	image *image[10];
+	image *image[16];
 
 	int x,y,dx,dy,currentImage;
 	unsigned int mask,draw;
@@ -121,6 +121,7 @@ typedef struct
 } library;
 
 void spriteSetup(sprite *s,char *name);
+void spriteSetupFull(sprite *s,char *name,unsigned int active,unsigned int mask,unsigned int draw);
 void spriteClearImages(sprite *s);
 void spriteAddImageFromLibrary(sprite *s,library *lib,unsigned int i);
 void spriteAddImage(sprite *s,image *i);

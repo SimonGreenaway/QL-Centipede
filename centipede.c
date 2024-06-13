@@ -13,6 +13,9 @@ library lib;
 sprite player,player_bullet,dropper,spider;
 sprite centipede[12];
 sprite mushrooms[MUSHX][MUSHY];
+sprite numbers;
+
+unsigned int hiscore=0,score,lives;
 
 static unsigned int g_seed;
 
@@ -28,6 +31,66 @@ inline unsigned int fastRand(void)
 {
         g_seed = (214013*g_seed+2531011);
         return (g_seed>>16);
+}
+
+unsigned int divu10(unsigned int n)
+{
+    unsigned q, r;
+
+    q = (n >> 1) + (n >> 2);
+    q = q + (q >> 4);
+    q = q + (q >> 8);
+    q = q + (q >> 16);
+    q = q >> 3;
+    r = n - (((q << 2) + q) << 1);
+
+    return q + (r > 9);
+}
+
+// Fast *10
+
+unsigned int mul10(unsigned int z)
+{
+        return (z<<3)+(z<<1);
+}
+
+void scorePrint(unsigned int x,unsigned int y,unsigned int digits,unsigned int z)
+{
+        int a;
+        unsigned int zz;
+
+	numbers.x=x;
+	numbers.y=y;
+
+        for(a=digits;a>=0;a--)
+        {
+                zz=divu10(z);
+		numbers.currentImage=z-mul10(zz);
+                z=zz;
+
+		spritePlot(SCREEN,&numbers);
+		numbers.x-=8;
+
+		if(z==0) break;
+        }
+}
+
+void printScore()
+{
+	unsigned int a;
+	fill(SCREEN,0,8,0);
+	scorePrint(5*8,0,5,score);
+
+	numbers.currentImage=10;
+	numbers.x=5*8+8;
+
+	for(a=1;a<lives;a++)
+	{
+		spritePlot(SCREEN,&numbers);
+		numbers.x+=8;
+	}
+
+	scorePrint(128+1*8,0,5,hiscore);
 }
 
 void initCentipede()
@@ -92,12 +155,21 @@ void setupMushRooms()
 
 int main(int argc,char *argv[])
 {
+	unsigned int i;
+
 	fastSRand(0);
 	init(8);
 	loadLibrary(&lib,"centipede_lib",1);
 
 	initMushrooms();
 	initCentipede();
+
+	// Set up number
+	//
+
+        spriteSetupFull(&numbers,"Numbers",1,0,1);
+	for(i=14;i<24;i++) spriteAddImageFromLibrary(&numbers,&lib,i);
+	spriteAddImageFromLibrary(&numbers,&lib,4);
 
 	// Set up player
         spriteSetupFull(&player,"Player",1,0,1);
@@ -124,6 +196,10 @@ int main(int argc,char *argv[])
 	spritePlot(SCREEN,&player);
 
 	player.timer.value=getFrames();
+	score=0;
+	lives=3;
+
+	printScore();
 
 	spider.active=0;
 	spider.timer.value=getFrames()+50;
@@ -191,6 +267,8 @@ int main(int argc,char *argv[])
 					{
 						m->currentImage=0;
 						m->active=0;
+						score++;
+						printScore();
 					}
 					else
 					{
