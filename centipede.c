@@ -106,17 +106,24 @@ void initCentipede()
 	}
 }
 
-void setupCentipede()
+void setupCentipede(unsigned int frames)
 {
 	unsigned int i;
 
 	for(i=0;i<12;i++)
 	{
-		centipede[i].active=1;
+		centipede[i].active=(i==0);
 
-		if(i==0)
-			centipede[i].currentImage=0;
-		else centipede[i].currentImage=1+(i%4);
+		if(i==0) centipede[i].currentImage=0;
+		else centipede[i].currentImage=1;
+
+		centipede[i].x=128;
+		centipede[i].y=8;
+		centipede[i].dy=1;
+		centipede[i].dx=2;
+
+		centipede[i].timer.value=frames+6*i;
+		centipede[i].timer2.value=1; // Alive flag
 	}
 }
 
@@ -153,6 +160,49 @@ void setupMushRooms()
 	}
 }
 
+void runCentipede(unsigned int frames)
+{
+	unsigned int i;
+
+	for(i=0;i<12;i++)
+	{
+		if(centipede[i].timer2.value)
+		{
+			if(centipede[i].active)
+			{
+				if(centipede[i].timer.value<frames)
+				{
+					centipede[i].draw=0;
+					spritePlot(SCREEN,&centipede[i]);
+
+					centipede[i].x+=centipede[i].dx;
+					if((centipede[i].x==XMIN)
+					  ||(centipede[i].x==XMAX-8)
+                                          ||mushrooms[(centipede[i].x-XMIN+(centipede[i].dx>0?6:0))/8][(centipede[i].y-8)/8].active)
+					{
+						centipede[i].dx=-centipede[i].dx;
+						centipede[i].y+=centipede[i].dy*8; // BODGE
+					}
+
+					if(centipede[i].y==256-8)
+					{
+						centipede[i].dy=-1;
+					}
+
+					centipede[i].draw=1;
+					spritePlot(SCREEN,&centipede[i]);
+
+					centipede[i].timer.value=frames+1;
+				}
+			}
+			else if(centipede[i].timer.value<frames)
+			{	
+				centipede[i].active=1;
+			}
+		}	
+	}
+}
+
 int main(int argc,char *argv[])
 {
 	unsigned int i;
@@ -164,7 +214,7 @@ int main(int argc,char *argv[])
 	
 	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
 
-	i=getFrames()+250;
+	i=getFrames(); //+250;
 
 	loadLibrary(&lib,"centipede_lib",1,0);
 
@@ -202,7 +252,6 @@ int main(int argc,char *argv[])
 	cls(SCREEN);
 
 	setupMushrooms();
-	setupCentipede();
 	spritePlot(SCREEN,&player);
 
 	player.timer.value=getFrames();
@@ -214,9 +263,13 @@ int main(int argc,char *argv[])
 	spider.active=0;
 	spider.timer.value=getFrames()+50;
 
+	setupCentipede(getFrames());
+
 	while(1)
 	{
 		unsigned int f=getFrames();
+
+		runCentipede(f);
 
 		if(f>player.timer.value) // Time to move the player?
 		{
