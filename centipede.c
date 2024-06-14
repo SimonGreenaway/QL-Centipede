@@ -159,13 +159,23 @@ int main(int argc,char *argv[])
 
 	fastSRand(0);
 	init(8);
-	loadLibrary(&lib,"centipede_lib",1);
+
+	// Load data from media
+	
+	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
+
+	i=getFrames()+250;
+
+	loadLibrary(&lib,"centipede_lib",1,0);
+
+	while(i>getFrames()); // Make sure we have shown the splash for at least 5 seconds
+
+	// Initialise stuff
 
 	initMushrooms();
 	initCentipede();
 
-	// Set up number
-	//
+	// Set up numbers for score
 
         spriteSetupFull(&numbers,"Numbers",1,0,1);
 	for(i=14;i<24;i++) spriteAddImageFromLibrary(&numbers,&lib,i);

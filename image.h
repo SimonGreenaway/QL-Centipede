@@ -144,7 +144,7 @@ void spriteClear(screen scr,screen mask,sprite *sprite);
 
 // Image library handling
 
-void loadLibrary(library *library,char *filename,int shift);
+void loadLibrary(library *library,char *filename,int shift,int verbose);
 int bLoadLibrary(library *library,char *filename,int shift);
 void bSaveLibrary(library *library,char *filename);
 
