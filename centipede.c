@@ -208,6 +208,10 @@ void runCentipede(unsigned int frames)
 						centipede[i].dx=-centipede[i].dx;
 						centipede[i].y+=centipede[i].dy*8; // BODGE
 						animations[i].set=1-animations[i].set;
+
+						if(animations[i].head)
+							centipede[i].currentImage=(animations
+[i].set==0)?0:6;
 					}
 
 					if(centipede[i].y==256-8)
