@@ -93,29 +93,49 @@ void printScore()
 	scorePrint(128+1*8,0,5,hiscore);
 }
 
+struct
+{
+	unsigned int head;
+	unsigned int set;
+	unsigned int position;
+	unsigned int direction;
+} animations[12];
+
+const int centipedeAnimation[2][8]={{7,8,9,10,11,10,9,8},{1,2,3,4,5,4,3,2}};
+
 void initCentipede()
 {
-	unsigned int i;
+	unsigned int i,j;
+	unsigned int images[]={5 ,26,25, 6, 7,24,
+			       27,28,29,30,31,32};
 
 	for(i=0;i<12;i++)
 	{
 		spriteSetupFull(&centipede[i],"C",0,0,1);
-		spriteAddImageFromLibrary(&centipede[i],&lib,5); // R
-		spriteAddImageFromLibrary(&centipede[i],&lib,6); // L1
-		spriteAddImageFromLibrary(&centipede[i],&lib,7); // L2
+
+		for(j=0;j<12;j++)
+			spriteAddImageFromLibrary(&centipede[i],&lib,images[j]);
 	}
 }
 
 void setupCentipede(unsigned int frames)
 {
-	unsigned int i;
+	unsigned int i,si=6,sd=-1;
 
 	for(i=0;i<12;i++)
 	{
 		centipede[i].active=(i==0);
 
-		if(i==0) centipede[i].currentImage=0;
-		else centipede[i].currentImage=1;
+		centipede[i].currentImage=si;
+
+		if(si==6)
+			si=7;
+		else
+		{
+			if((si==11)||(si==7)) sd=-sd;
+
+			si+=sd;
+		}
 
 		centipede[i].x=128;
 		centipede[i].y=8;
@@ -124,7 +144,12 @@ void setupCentipede(unsigned int frames)
 
 		centipede[i].timer.value=frames+6*i;
 		centipede[i].timer2.value=1; // Alive flag
-	}
+
+		animations[i].head=i==0;
+		animations[i].set=1;
+		animations[i].position=0;
+		animations[i].direction=1;
+	 }
 }
 
 void initMushrooms()
@@ -182,6 +207,7 @@ void runCentipede(unsigned int frames)
 					{
 						centipede[i].dx=-centipede[i].dx;
 						centipede[i].y+=centipede[i].dy*8; // BODGE
+						animations[i].set=1-animations[i].set;
 					}
 
 					if(centipede[i].y==256-8)
@@ -189,6 +215,21 @@ void runCentipede(unsigned int frames)
 						centipede[i].dy=-1;
 					}
 
+					// Set animation frame
+				
+	
+					if(!animations[i].head)
+					{
+						animations[i].position+=animations[i].direction;
+
+						centipede[i].currentImage=centipedeAnimation[animations[i].set][animations[i].position];
+
+						if((animations[i].position==7)||(animations[i].position==0))
+						{
+							animations[i].direction=-animations[i].direction;
+						}
+					}
+	
 					centipede[i].draw=1;
 					spritePlot(SCREEN,&centipede[i]);
 
@@ -298,9 +339,10 @@ int main(int argc,char *argv[])
 			{
 				player_bullet.active=1;
 				player_bullet.x=player.x+3;
-				player_bullet.y=player.y-8;
+				player_bullet.y=player.y;
+				player_bullet.timer2.value=0;
 				player_bullet.timer.value=f;
-				spritePlot(SCREEN,&player_bullet);
+				//spritePlot(SCREEN,&player_bullet);
 			}
 
 			player.timer.value=getFrames()+1;
@@ -309,8 +351,11 @@ int main(int argc,char *argv[])
 		// Move player bullet?
 		if(player_bullet.active&&(f>player_bullet.timer.value))
 		{
-			player_bullet.mask=1; player_bullet.draw=0;
-			spritePlot(SCREEN,&player_bullet);
+			//if(player_bullet.timer2.value++)
+			{
+				player_bullet.mask=1; player_bullet.draw=0;
+				spritePlot(SCREEN,&player_bullet);
+			}
 
 			if(player_bullet.y<8)
 			{
@@ -341,6 +386,26 @@ int main(int argc,char *argv[])
 					}
 
 					player_bullet.active=0;
+				}
+				else if(peek(SCREEN,player_bullet.y+4,player_bullet.x)
+			    	      ||peek(SCREEN,player_bullet.y+8,player_bullet.x))
+				{
+					player_bullet.active=0;
+
+					if(spider.active)
+					{
+						if((spider.x<=player_bullet.x)&&(spider.x+16>=player_bullet.x)&&(spider.y<=player_bullet.y)&&(spider.y+8>=player_bullet.y))
+						{
+							spider.draw=0;
+							spritePlot(SCREEN,&spider);
+							spider.draw=1;
+
+							spider.active=0;
+
+							score+=300;
+							printScore();
+						}
+					}
 				}
 				else
 				{
