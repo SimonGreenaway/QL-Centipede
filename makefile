@@ -1,10 +1,13 @@
 COPTS=-O3 -fomit-frame-pointer -std=gnu9x
 
-centipede:	libsprite.a centipede.o
+centipede:	libsprite.a centipede.o hitBox.o
 	qgcc qdos-gcc -o centipede centipede.o -lsprite
 
 centipede.o:	libsprite.a centipede.c makefile
 		qgcc qdos-gcc $(COPTS) -o centipede.o -c centipede.c
+
+hitBox.o:	libsprite.a hitBox.c makefile hitBox.h
+		qgcc qdos-gcc $(COPTS) -o hitBox.o -c hitBox.c
 
 libsprite.a:
 	make -C QL-sprites
@@ -15,7 +18,10 @@ clean:
 	rm -f centipede.o libsprite.a
 	make -C QL-sprites clean
 
-git:	clean
+cleaner:	clean
+	rm -f centipede
+
+git:	cleaner
 	git add .
 	git commit
 	git push

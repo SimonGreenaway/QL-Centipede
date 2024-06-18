@@ -15,6 +15,8 @@ sprite centipede[12];
 sprite mushrooms[MUSHX][MUSHY];
 sprite numbers;
 
+unsigned int mushroomCount;
+
 unsigned int hiscore=0,score,lives;
 
 static unsigned int g_seed;
@@ -183,13 +185,25 @@ void setupMushRooms()
 		mushrooms[x][y].active=1;
 		spritePlot(SCREEN,&mushrooms[x][y]);
 	}
+
+	mushroomCount=50;
+}
+
+sprite *getMushroom(unsigned int x,unsigned int y)
+{
+	return &mushrooms[(x-XMIN)/8][y/8];
+}
+
+unsigned int isMushroom(unsigned int x,unsigned int y)
+{
+	return getMushroom(x,y)->active;
 }
 
 void runCentipede(unsigned int frames)
 {
 	unsigned int i;
 
-	for(i=0;i<12;i++)
+	for(i=0;i<12;i++) // Run through 12 centipede segments
 	{
 		if(centipede[i].timer2.value)
 		{
@@ -197,43 +211,52 @@ void runCentipede(unsigned int frames)
 			{
 				if(centipede[i].timer.value<frames)
 				{
-					centipede[i].draw=0;
-					spritePlot(SCREEN,&centipede[i]);
+					unsigned int newx=centipede[i].x,newy=centipede[i].y;
+					unsigned int newImage=centipede[i].currentImage;
 
-					centipede[i].x+=centipede[i].dx;
-					if((centipede[i].x==XMIN)
-					  ||(centipede[i].x==XMAX-8)
-                                          ||mushrooms[(centipede[i].x-XMIN+(centipede[i].dx>0?6:0))/8][(centipede[i].y-8)/8].active)
+					newx+=centipede[i].dx; // Move segment
+
+					// Check for edge or mushroom bounce
+				
+					if((newx==XMIN)
+					  ||(newx==XMAX-8)
+                                          ||isMushroom(newx+(centipede[i].dx>0?6:0),newy-1))
 					{
 						centipede[i].dx=-centipede[i].dx;
-						centipede[i].y+=centipede[i].dy*8; // BODGE
+						newy+=centipede[i].dy*8;
 						animations[i].set=1-animations[i].set;
 
 						if(animations[i].head)
-							centipede[i].currentImage=(animations
-[i].set==0)?0:6;
+							newImage=(animations[i].set==0)?0:6;
 					}
 
-					if(centipede[i].y==256-8)
+					if(newy>=248)
 					{
-						centipede[i].dy=-1;
+						newy=256-6*8;
+						newx=centipede[i].dx<0?XMAX-8:XMIN;
 					}
 
 					// Set animation frame
 				
-	
 					if(!animations[i].head)
 					{
 						animations[i].position+=animations[i].direction;
 
-						centipede[i].currentImage=centipedeAnimation[animations[i].set][animations[i].position];
+						newImage=centipedeAnimation[animations[i].set][animations[i].position];
 
 						if((animations[i].position==7)||(animations[i].position==0))
 						{
 							animations[i].direction=-animations[i].direction;
 						}
 					}
-	
+
+					centipede[i].draw=0;
+					spritePlot(SCREEN,&centipede[i]);
+
+					centipede[i].x=newx;
+					centipede[i].y=newy;
+					centipede[i].currentImage=newImage;
+
 					centipede[i].draw=1;
 					spritePlot(SCREEN,&centipede[i]);
 
@@ -259,7 +282,7 @@ int main(int argc,char *argv[])
 	
 	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
 
-	i=getFrames(); //+250;
+	i=getFrames()+500;
 
 	loadLibrary(&lib,"centipede_lib",1,0);
 
@@ -288,6 +311,7 @@ int main(int argc,char *argv[])
 
 	// Set up mushroom dropper
 	spriteSetupFull(&dropper,"Dropper",0,0,1);
+	dropper.draw=1; dropper.mask=1;
 	spriteAddImageFromLibrary(&dropper,&lib,10);
 
 	// Set up spider
@@ -310,11 +334,16 @@ int main(int argc,char *argv[])
 
 	setupCentipede(getFrames());
 
+
 	while(1)
 	{
 		unsigned int f=getFrames();
 
 		runCentipede(f);
+
+		////////////
+		// Player //
+		////////////
 
 		if(f>player.timer.value) // Time to move the player?
 		{
@@ -352,7 +381,10 @@ int main(int argc,char *argv[])
 			player.timer.value=getFrames()+1;
 		}
 
-		// Move player bullet?
+		/////////////////////////
+		// Move player bullet? //
+		/////////////////////////
+	
 		if(player_bullet.active&&(f>player_bullet.timer.value))
 		{
 			//if(player_bullet.timer2.value++)
@@ -369,9 +401,9 @@ int main(int argc,char *argv[])
 			{
 				player_bullet.y-=8;
 
-				if(mushrooms[(player_bullet.x-XMIN)/8][player_bullet.y/8].active)
+				if(isMushroom(player_bullet.x,player_bullet.y))
 				{
-					sprite *m=&mushrooms[(player_bullet.x-XMIN)/8][player_bullet.y/8];
+					sprite *m=getMushroom(player_bullet.x,player_bullet.y);
 					m->mask=1; m->draw=0;
 					spritePlot(SCREEN,m);
 
@@ -379,6 +411,7 @@ int main(int argc,char *argv[])
 					{
 						m->currentImage=0;
 						m->active=0;
+						mushroomCount--;
 						score++;
 						printScore();
 					}
@@ -421,6 +454,10 @@ int main(int argc,char *argv[])
 			player_bullet.timer.value=f+1;
 		}
 
+		////////////
+		// Spider //
+		////////////
+
 		if(f>spider.timer.value)
 		{
 			spider.timer.value=f+1;
@@ -445,7 +482,7 @@ int main(int argc,char *argv[])
 						spider.dy=-spider.dy;	
 						spider.dx=fastRand()&3?spider.timer2.value:0;
 					}
-					else if(spider.y<=256-5*8)
+					else if(spider.y<=256-6*8)
 					{
 						spider.dy=-spider.dy;	
 						spider.dx=fastRand()&3?spider.timer2.value:0;
@@ -458,12 +495,56 @@ int main(int argc,char *argv[])
 			else
 			{
 				spider.active=1;
-				spider.y=256-5*8;
+				spider.y=256-6*8;
 				spider.x=fastRand()&1?XMIN:XMAX-16;
 				spider.dy=2;
 				spider.dx=spider.x<128?2:-2;
 				spider.timer2.value=spider.dx;
 			}
+		}
+
+		//////////////////////
+		// Mushroom dropper //
+		//////////////////////
+	
+		if(f>dropper.timer.value)
+		{
+			if(dropper.active)
+			{
+				if(!isMushroom(dropper.x,dropper.y))
+				{
+					dropper.draw=0;
+					spritePlot(SCREEN,&dropper);
+					dropper.draw=1;
+				}
+
+				// Check mushroom?
+				dropper.y+=8;
+
+				if(dropper.y>=256-8)
+				{
+					dropper.active=0;
+				}
+				else if(isMushroom(dropper.x,dropper.y))
+				{
+					spritePlot(SCREEN,&dropper);
+				}
+			}
+			else if((mushroomCount<45)&&((fastRand()&127)==0))
+			{
+				// Start dropper
+			
+				dropper.x=mushrooms[(fastRand()*MUSHX)/65536][0].x;
+				dropper.y=8;
+				dropper.active=1;
+	
+				if(isMushroom(dropper.x,dropper.y))
+							spritePlot(SCREEN,&dropper);
+	
+				dropper.timer.value=f+1;
+			}
+ 	
+			dropper.timer.value=f+1;
 		}
 	}
 }
