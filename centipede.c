@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <unistd.h>
 #include <qdos.h>
 
 #include "image.h"
@@ -16,9 +18,12 @@ sprite mushrooms[MUSHX][MUSHY];
 sprite numbers;
 
 unsigned int mushroomCount,mushroomTarget;
+unsigned int score,lives;
+unsigned int highScores[8]={16543,15342,14320,13210,13010,12805,12201,12102};
+unsigned char highScorers[8][3]={"EJD","DFT","CAD","DCB","ED ","DEW","DFW","GJR"};
 
-unsigned int hiscore=0,score,lives;
-
+// Random stuff!
+//
 static unsigned int g_seed;
 
 void fastSrand(int seed)
@@ -92,7 +97,34 @@ void printScore()
 		numbers.x+=8;
 	}
 
-	scorePrint(128+1*8,0,5,hiscore);
+	scorePrint(128+1*8,0,5,highScores[0]);
+}
+
+void printHighScores()
+{
+	char *copyright="?1980 Atari";
+	unsigned int i;
+	char b[10];
+
+	copyright[0]=127;
+
+	setFontMasking(2);
+
+	printAt(SCREEN,&font,8,82,24,"HIGH SCORES");
+	for(i=0;i<8;i++)
+	{
+		sprintf(b,"%5d %3s",highScores[i],highScorers[i]);
+		b[9]='\0';
+		printAt(SCREEN,&font,8,92,32+i*8,b);
+	}
+
+	printAt(SCREEN,&font,8,76,102,"1 COIN 1 PLAY");
+	printAt(SCREEN,&font,8,68,102+32,"BONUS EVERY 12000");
+
+
+	printAt(SCREEN,&font,8,90,256-9,copyright);
+
+	while(1);
 }
 
 struct
@@ -156,7 +188,7 @@ void setupCentipede(unsigned int frames)
 
 void initMushrooms()
 {
-	unsigned int i,x,y;
+	unsigned int x,y;
 
 	for(x=0;x<MUSHX;x++)
 		for(y=0;y<MUSHY;y++)
@@ -176,6 +208,10 @@ void initMushrooms()
 void setupMushRooms()
 {
 	unsigned int i,x,y;
+
+	for(x=0;x<MUSHX;x++)
+		for(y=0;y<MUSHY;y++)
+			mushrooms[x][y].active=0;
 
 	for(i=0;i<50;i++)
 	{
@@ -318,7 +354,7 @@ int main(int argc,char *argv[])
 	
 	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
 
-	i=getFrames()+250;
+	i=getFrames()+100;
 
 	loadLibrary(&font,"atari_lib",1,0);
 
@@ -357,6 +393,11 @@ int main(int argc,char *argv[])
 	// Set up spider
 	spriteSetupFull(&spider,"Spider",0,0,1);
 	spriteAddImageFromLibrary(&spider,&lib,8);
+
+	cls(SCREEN);
+	setupMushrooms();
+	printHighScores();
+	sleep(5);
 
 	cls(SCREEN);
 
