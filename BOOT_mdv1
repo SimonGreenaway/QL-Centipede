@@ -1,0 +1,8 @@
+10 OPEN #8,con_512x256a0x0_0
+20 INK #8,4
+30 CLS #8
+40 PRINT #8;"Loading centipede..."
+41 base=RESPR(1024):LBYTES mdv1_env_bin,base:CALL base
+42 SETENV "DRIVE=MDV1_"
+60 EXEC_W mdv1_centipede,#8
+70 CLOSE #8
