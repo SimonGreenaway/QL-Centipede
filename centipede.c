@@ -102,15 +102,15 @@ void printScore()
 
 void printHighScores()
 {
-	char *copyright="?1980 Atari";
-	unsigned int i;
+	char *copyright="?1980 ATARI";
+	unsigned int i,ok=1;
 	char b[10];
 
 	copyright[0]=127;
 
 	setFontMasking(2);
 
-	printAt(SCREEN,&font,8,82,24,"HIGH SCORES");
+	printAt(SCREEN,&font,8,84,24,"HIGH SCORES");
 	for(i=0;i<8;i++)
 	{
 		sprintf(b,"%5d %3s",highScores[i],highScorers[i]);
@@ -121,10 +121,17 @@ void printHighScores()
 	printAt(SCREEN,&font,8,76,102,"1 COIN 1 PLAY");
 	printAt(SCREEN,&font,8,68,102+32,"BONUS EVERY 12000");
 
-
 	printAt(SCREEN,&font,8,90,256-9,copyright);
 
-	while(1);
+/*
+	while(ok)
+	{
+		for(i=0;i<10;i++)
+		{
+			if(keyrow(i)) ok=0;
+		}	
+	}
+	*/
 }
 
 struct
@@ -392,12 +399,14 @@ int main(int argc,char *argv[])
 
 	// Set up spider
 	spriteSetupFull(&spider,"Spider",0,0,1);
+	spriteAddImageFromLibrary(&spider,&lib,34);
+	spriteAddImageFromLibrary(&spider,&lib,33);
 	spriteAddImageFromLibrary(&spider,&lib,8);
+	spriteAddImageFromLibrary(&spider,&lib,35);
 
 	cls(SCREEN);
 	setupMushrooms();
-	printHighScores();
-	sleep(5);
+	//printHighScores();
 
 	cls(SCREEN);
 
@@ -576,6 +585,8 @@ int main(int argc,char *argv[])
 
 					removeMushroom(spider.x,spider.y);
 					removeMushroom(spider.x+8,spider.y);
+
+					spider.currentImage=(spider.currentImage+1)&3;
 
 					spider.mask=0; spider.draw=1;
 					spritePlot(SCREEN,&spider);
