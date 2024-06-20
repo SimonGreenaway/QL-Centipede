@@ -8,7 +8,7 @@
 #define XMIN ((256-MUSHX*8)/2)
 #define XMAX (256-(256-MUSHX*8)/2)
 
-library lib;
+library lib,font;
 
 sprite player,player_bullet,dropper,spider;
 sprite centipede[12];
@@ -318,7 +318,11 @@ int main(int argc,char *argv[])
 	
 	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
 
-	i=getFrames(); // +250;
+	i=getFrames()+250;
+
+	loadLibrary(&font,"atari_lib",1,0);
+
+	printAt(SCREEN,&font,8,15,215,"Centipede by Simon Greenaway");
 
 	loadLibrary(&lib,"centipede_lib",1,0);
 

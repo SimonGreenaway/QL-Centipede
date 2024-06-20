@@ -26,6 +26,7 @@ git:	cleaner
 deploy:  centipede
 	cp centipede /home/simon/emulators/ql/emulators/sQLux/flp1/
 	cp centipede.lib /home/simon/emulators/ql/emulators/sQLux/flp1/
+	cp atari.lib /home/simon/emulators/ql/emulators/sQLux/flp1/atari_lib
 	cp centipede.scr /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_scr
 	cp QL-sprites/env.bin /home/simon/emulators/ql/emulators/sQLux/flp1/
 	cp BOOT_flp1 /home/simon/emulators/ql/emulators/sQLux/flp1/BOOT
