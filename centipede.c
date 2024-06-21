@@ -157,7 +157,12 @@ void initCentipede()
 		spriteSetupFull(&centipede[i],"C",0,0,1);
 
 		for(j=0;j<12;j++)
+		{
 			spriteAddImageFromLibrary(&centipede[i],&lib,images[j]);
+		}
+
+		spriteAddImageFromLibrary(&centipede[i],&lib,44);
+		spriteAddImageFromLibrary(&centipede[i],&lib,45);
 	}
 }
 
@@ -551,7 +556,7 @@ int runLife()
 					removeMushroom(spider.x,spider.y-2);
 					removeMushroom(spider.x+8,spider.y-2);
 
-					spider.currentImage=(spider.currentImage+1)&3;
+					if((spider.timer2.delta++)&1) spider.currentImage=(spider.currentImage+1)&3;
 
 					spider.mask=0; spider.draw=1;
 					spritePlot(SCREEN,&spider);

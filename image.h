@@ -94,7 +94,7 @@ typedef struct
         unsigned int value,delta;
 } timer;
 
-#define MAXIMAGES 16
+#define MAXIMAGES 24
 
 struct sprite
 {
