@@ -20,7 +20,7 @@ sprite numbers;
 unsigned int mushroomCount,mushroomTarget;
 unsigned int score,lives;
 unsigned int highScores[8]={16543,15342,14320,13210,13010,12805,12201,12102};
-unsigned char highScorers[8][3]={"EJD","DFT","CAD","DCB","ED ","DEW","DFW","GJR"};
+unsigned char *highScorers[8]={"EJD","DFT","CAD","DCB","ED ","DEW","DFW","GJR"};
 
 // Random stuff!
 //
@@ -104,7 +104,7 @@ void printHighScores()
 {
 	char *copyright="?1980 ATARI";
 	unsigned int i,ok=1;
-	char b[10];
+	char b[32];
 
 	copyright[0]=127;
 
@@ -114,7 +114,6 @@ void printHighScores()
 	for(i=0;i<8;i++)
 	{
 		sprintf(b,"%5d %3s",highScores[i],highScorers[i]);
-		b[9]='\0';
 		printAt(SCREEN,&font,8,92,32+i*8,b);
 	}
 
@@ -123,7 +122,6 @@ void printHighScores()
 
 	printAt(SCREEN,&font,8,90,256-9,copyright);
 
-/*
 	while(ok)
 	{
 		for(i=0;i<10;i++)
@@ -131,7 +129,8 @@ void printHighScores()
 			if(keyrow(i)) ok=0;
 		}	
 	}
-	*/
+
+	putchar('!');
 }
 
 struct
@@ -406,7 +405,8 @@ int main(int argc,char *argv[])
 
 	cls(SCREEN);
 	setupMushrooms();
-	//printHighScores();
+	printHighScores();
+	putchar('a');
 
 	cls(SCREEN);
 
