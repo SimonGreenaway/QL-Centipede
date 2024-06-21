@@ -238,28 +238,37 @@ void setupMushRooms()
 
 sprite *getMushroom(unsigned int x,unsigned int y)
 {
-	return &mushrooms[(x-XMIN)/8][y/8];
+	if(y/8>=MUSHY) return NULL;
+	else return &mushrooms[(x-XMIN)/8][y/8];
 }
 
 unsigned int isMushroom(unsigned int x,unsigned int y,unsigned int debug)
 {
+	sprite *m=getMushroom(x,y);
+
 	if(debug)
 	{
-		sprite *m=getMushroom(x,y);
-		box(SCREEN,m->x,m->y,m->x+m->image[m->currentImage]->x*4,m->y+m->image[m->currentImage]->y,m->active+4);
-		sleep(1);
-		box(SCREEN,m->x,m->y,m->x+m->image[m->currentImage]->x*4,m->y+m->image[m->currentImage]->y,0);
+		if(m!=NULL)
+		{
+			box(SCREEN,m->x,m->y,m->x+m->image[m->currentImage]->x*4,m->y+m->image[m->currentImage]->y,m->active+4);
+			sleep(1);
+			box(SCREEN,m->x,m->y,m->x+m->image[m->currentImage]->x*4,m->y+m->image[m->currentImage]->y,0);
+		}
 	}
 
-	return getMushroom(x,y)->active;
+	return (m!=NULL)&&getMushroom(x,y)->active;
 }
 
 void removeMushroom(unsigned int x,unsigned int y)
 {
 	sprite *m=getMushroom(x,y);
 
-	if(m->active)
+	if((m!=NULL)&&(m->active))
 	{
+		//box(SCREEN,m->x,m->y,m->x+8,m->y+8,7); 
+		//sleep(1);
+		//box(SCREEN,m->x,m->y,m->x+8,m->y+8,0); 
+
 		m->draw=0;
 		spritePlot(SCREEN,m);
 		m->draw=1;
@@ -583,8 +592,8 @@ int main(int argc,char *argv[])
 						spider.dx=fastRand()&3?spider.timer2.value:0;
 					}
 
-					removeMushroom(spider.x,spider.y);
-					removeMushroom(spider.x+8,spider.y);
+					removeMushroom(spider.x,spider.y-2);
+					removeMushroom(spider.x+8,spider.y-2);
 
 					spider.currentImage=(spider.currentImage+1)&3;
 
