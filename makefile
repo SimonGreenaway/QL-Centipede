@@ -38,17 +38,19 @@ runfast:    deploy
 	cd /home/simon/emulators/ql/emulators/sQLux && ./sqlux --SPEED=0 --RAMSIZE=896 --SOUND 8 -b "LRUN flp1_BOOT"
 
 dist:	deploy
-	cp centipede /home/simon/emulators/ql/emulators/sQLux/flp1
-	cp centipede.lib /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_lib
-	cp atari.lib /home/simon/emulators/ql/emulators/sQLux/flp1/atari_lib
-	cp centipede.scr /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_scr
-	cp LICENSE /home/simon/emulators/ql/emulators/sQLux/flp1/LICENSE
-	cp BOOT_zip /home/simon/emulators/ql/emulators/sQLux/flp1/BOOT
-	cp QL-sprites/env.bin /home/simon/emulators/ql/emulators/sQLux/flp1/env_bin
-	cd /home/simon/emulators/ql/emulators/sQLux && ./sqlux --SPEED=0 -b "LRESPR flp1_sigext_rext:EW flp1_zip,#1;'flp1_centipede_zip BOOT env_bin centipede centipede_lib atari_lib centipede_scr LICENSE'"
-	mv /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_zip centipede.zip
-	qltools centipede.img -fdd centipede -W
+	#cp centipede /home/simon/emulators/ql/emulators/sQLux/flp1
+	#cp centipede.lib /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_lib
+	#cp atari.lib /home/simon/emulators/ql/emulators/sQLux/flp1/atari_lib
+	#cp centipede.scr /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_scr
+	#cp LICENSE /home/simon/emulators/ql/emulators/sQLux/flp1/LICENSE
+	#cp BOOT_zip /home/simon/emulators/ql/emulators/sQLux/flp1/BOOT
+	#cp QL-sprites/env.bin /home/simon/emulators/ql/emulators/sQLux/flp1/env_bin
+	#cd /home/simon/emulators/ql/emulators/sQLux && ./sqlux --SPEED=0 -b "LRESPR flp1_sigext_rext:EW flp1_zip,#1;'flp1_centipede_zip BOOT env_bin centipede centipede_lib atari_lib centipede_scr LICENSE'"
+	#mv /home/simon/emulators/ql/emulators/sQLux/flp1/centipede_zip centipede.zip
 	cp BOOT_flp1 BOOT
+	qlzip -9u centipede.zip centipede centipede.lib atari.lib env.bin centipede.scr LICENSE BOOT
+	qltools centipede.img -fdd centipede -W
+	#cp BOOT_flp1 BOOT
 	cp centipede.scr centipede_scr
 	cp centipede.lib centipede_lib
 	cp atari.lib atari_lib

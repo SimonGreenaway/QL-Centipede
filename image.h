@@ -176,3 +176,9 @@ void multiDraw(screen screen,unsigned char *data);
 
 //#define PLOT(screen,x,y,c) { unsigned short *address=ADDRESS((screen),(x),(y)); *address=(*address&masks[(x)&3])|colours[(x)&3][(c)]; }
 
+void fastSrand(int seed);
+inline unsigned int fastRand(void);
+
+inline unsigned int pointHit(unsigned int x,unsigned int y,unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1);
+inline unsigned hitBox(unsigned int px0,unsigned int py0,unsigned int px1,unsigned int py1,
+                    unsigned int ax0,unsigned int ay0,unsigned int ax1,unsigned int ay1);

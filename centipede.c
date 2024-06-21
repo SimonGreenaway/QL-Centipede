@@ -17,11 +17,13 @@ sprite centipede[12];
 sprite mushrooms[MUSHX][MUSHY];
 sprite numbers;
 
+unsigned int centipedeCount;
 unsigned int mushroomCount,mushroomTarget;
 unsigned int score,lives;
 unsigned int highScores[8]={16543,15342,14320,13210,13010,12805,12201,12102};
 unsigned char *highScorers[8]={"EJD","DFT","CAD","DCB","ED ","DEW","DFW","GJR"};
 
+/*
 // Random stuff!
 //
 static unsigned int g_seed;
@@ -39,6 +41,7 @@ inline unsigned int fastRand(void)
         g_seed = (214013*g_seed+2531011);
         return (g_seed>>16);
 }
+*/
 
 unsigned int divu10(unsigned int n)
 {
@@ -190,6 +193,8 @@ void setupCentipede(unsigned int frames)
 		animations[i].position=0;
 		animations[i].direction=1;
 	 }
+
+	centipedeCount=12;
 }
 
 void initMushrooms()
@@ -211,7 +216,7 @@ void initMushrooms()
 	}
 }
 
-void setupMushRooms()
+void setupMushrooms()
 {
 	unsigned int i,x,y;
 
@@ -358,81 +363,8 @@ void runCentipede(unsigned int frames)
 	}
 }
 
-int main(int argc,char *argv[])
+int runLife()
 {
-	unsigned int i;
-
-	fastSRand(0);
-	init(8);
-
-	// Load data from media
-	
-	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
-
-	i=getFrames()+100;
-
-	loadLibrary(&font,"atari_lib",1,0);
-
-	printAt(SCREEN,&font,8,15,215,"Centipede by Simon Greenaway");
-
-	loadLibrary(&lib,"centipede_lib",1,0);
-
-	while(i>getFrames()); // Make sure we have shown the splash for at least 5 seconds
-
-	// Initialise stuff
-
-	initMushrooms();
-	initCentipede();
-
-	// Set up numbers for score
-
-        spriteSetupFull(&numbers,"Numbers",1,0,1);
-	for(i=14;i<24;i++) spriteAddImageFromLibrary(&numbers,&lib,i);
-	spriteAddImageFromLibrary(&numbers,&lib,4);
-
-	// Set up player
-        spriteSetupFull(&player,"Player",1,0,1);
-        spriteAddImageFromLibrary(&player,&lib,4);
-        player.x=128;
-        player.y=252-8;
-
-	// Set up player's bullet
-        spriteSetupFull(&player_bullet,"PB",0,0,0);
-        spriteAddImageFromLibrary(&player_bullet,&lib,9);
-
-	// Set up mushroom dropper
-	spriteSetupFull(&dropper,"Dropper",0,0,1);
-	dropper.draw=1; dropper.mask=1;
-	spriteAddImageFromLibrary(&dropper,&lib,10);
-
-	// Set up spider
-	spriteSetupFull(&spider,"Spider",0,0,1);
-	spriteAddImageFromLibrary(&spider,&lib,34);
-	spriteAddImageFromLibrary(&spider,&lib,33);
-	spriteAddImageFromLibrary(&spider,&lib,8);
-	spriteAddImageFromLibrary(&spider,&lib,35);
-
-	cls(SCREEN);
-	setupMushrooms();
-	printHighScores();
-	putchar('a');
-
-	cls(SCREEN);
-
-	setupMushrooms();
-	spritePlot(SCREEN,&player);
-
-	player.timer.value=getFrames();
-	score=0;
-	lives=3;
-
-	printScore();
-
-	spider.active=0;
-	spider.timer.value=getFrames()+50;
-
-	setupCentipede(getFrames());
-
 	while(1)
 	{
 		unsigned int f=getFrames();
@@ -579,6 +511,13 @@ int main(int argc,char *argv[])
 					spider.active=0;
 					spider.timer.value=getFrames()+50;
 				}
+				else if(hitBox(player.x,player.y,player.x+8,player.y+8,
+					       spider.x+1,spider.y+1,spider.x+11,spider.y+7))
+				{
+					spider.active=0;
+
+					return 0;
+				}
 				else
 				{
 					if(spider.y>=246)
@@ -667,5 +606,114 @@ int main(int argc,char *argv[])
 		}
 
 		if((f&63)==0) mushroomTarget++;
+
+		if(centipedeCount==0) return 1;
 	}
 }
+
+int main(int argc,char *argv[])
+{
+	unsigned int i;
+
+	fastSrand(0);
+	init(8);
+
+	// Load data from media
+	
+	loadScreen((unsigned char *)SCREEN,"flp1_","centipede_scr");
+
+	i=getFrames()+100;
+
+	loadLibrary(&font,"flp1_atari_lib",1,0);
+
+	printAt(SCREEN,&font,8,15,215,"Centipede by Simon Greenaway");
+
+	loadLibrary(&lib,"flp1_centipede_lib",1,0);
+
+	while(i>getFrames()); // Make sure we have shown the splash for at least 5 seconds
+
+	// Initialise stuff
+
+	initMushrooms();
+	initCentipede();
+
+	// Set up numbers for score
+
+        spriteSetupFull(&numbers,"Numbers",1,0,1);
+	for(i=14;i<24;i++) spriteAddImageFromLibrary(&numbers,&lib,i);
+	spriteAddImageFromLibrary(&numbers,&lib,4);
+
+	// Set up player
+        spriteSetupFull(&player,"Player",1,0,1);
+        spriteAddImageFromLibrary(&player,&lib,4);
+        player.x=128;
+        player.y=252-8;
+
+	// Set up player's bullet
+        spriteSetupFull(&player_bullet,"PB",0,0,0);
+        spriteAddImageFromLibrary(&player_bullet,&lib,9);
+
+	// Set up mushroom dropper
+	spriteSetupFull(&dropper,"Dropper",0,0,1);
+	dropper.draw=1; dropper.mask=1;
+	spriteAddImageFromLibrary(&dropper,&lib,10);
+
+	// Set up spider
+	spriteSetupFull(&spider,"Spider",0,0,1);
+	spriteAddImageFromLibrary(&spider,&lib,34);
+	spriteAddImageFromLibrary(&spider,&lib,33);
+	spriteAddImageFromLibrary(&spider,&lib,8);
+	spriteAddImageFromLibrary(&spider,&lib,35);
+
+	while(1)
+	{
+		cls(SCREEN);
+		setupMushrooms();
+		printHighScores();
+		putchar('a');
+
+		cls(SCREEN);
+
+		setupMushrooms();
+		spritePlot(SCREEN,&player);
+
+		player.timer.value=getFrames();
+		score=0;
+		lives=3;
+
+		while(lives>0)
+		{
+			unsigned int result;
+
+			printScore();
+
+			spider.active=0;
+			spider.timer.value=getFrames()+50;
+
+			setupCentipede(getFrames());
+      
+			result=runLife();
+
+			for(i=0;i<12;i++)
+			{
+				if(centipede[i].active)
+				{
+					centipede[i].draw=0;
+					spritePlot(SCREEN,&centipede[i]);
+					centipede[i].draw=1;
+				}
+			}
+
+			if(result)
+			{
+				// New screen
+				
+			}
+			else // Death
+			{
+				lives--;
+			}
+		}		
+	}
+}
+
