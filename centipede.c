@@ -377,40 +377,57 @@ int runLife()
 
 		if(f>player.timer.value) // Time to move the player?
 		{
-			unsigned int key=keyrow(1);
-			unsigned int newx=player.x,newy=player.y;
+			if(player.active)
+			{
+				unsigned int key=keyrow(1);
+				unsigned int newx=player.x,newy=player.y;
 
-			if((key&2)&&(player.x>XMIN)) newx-=2;
-			if((key&16)&&(player.x<XMAX-8)) newx+=2;	
-			if((key&4)&&(player.y>(256-5*8))) newy-=2;
-			if((key&128)&&(player.y<(255-8-1))) newy+=2;
+				if((key&2)&&(player.x>XMIN)) newx-=2;
+				if((key&16)&&(player.x<XMAX-8)) newx+=2;	
+				if((key&4)&&(player.y>(256-5*8))) newy-=2;
+				if((key&128)&&(player.y<(255-8-1))) newy+=2;
 
 
-			// Move the player?
-			if((player.x!=newx)||(player.y!=newy))
+				// Move the player?
+				if((player.x!=newx)||(player.y!=newy))
+				{
+					player.mask=1; player.draw=0;
+					spritePlot(SCREEN,&player);
+
+					player.x=newx; player.y=newy;
+
+					player.mask=0; player.draw=1;
+					spritePlot(SCREEN,&player);
+				}
+	
+				// Fire a bullet?
+				if((key&64)&&!player_bullet.active)
+				{
+					player_bullet.active=1;
+					player_bullet.x=player.x+3;
+					player_bullet.y=player.y-8;
+					player_bullet.timer2.value=0;
+					player_bullet.timer.value=f;
+					//spritePlot(SCREEN,&player_bullet);
+				}
+
+				player.timer.value=getFrames()+1;
+			}
+			else // player.active=0 exploding player
 			{
 				player.mask=1; player.draw=0;
 				spritePlot(SCREEN,&player);
-
-				player.x=newx; player.y=newy;
+	
+				if(++player.currentImage==8) return 0; // End of life
 
 				player.mask=0; player.draw=1;
 				spritePlot(SCREEN,&player);
+	
+				player.timer.value=getFrames()+2;
 			}
-
-			// Fire a bullet?
-			if((key&64)&&!player_bullet.active)
-			{
-				player_bullet.active=1;
-				player_bullet.x=player.x+3;
-				player_bullet.y=player.y-8;
-				player_bullet.timer2.value=0;
-				player_bullet.timer.value=f;
-				//spritePlot(SCREEN,&player_bullet);
-			}
-
-			player.timer.value=getFrames()+1;
 		}
+
+		if(!player.active) continue;
 
 		/////////////////////////
 		// Move player bullet? //
@@ -515,8 +532,8 @@ int runLife()
 					       spider.x+1,spider.y+1,spider.x+11,spider.y+7))
 				{
 					spider.active=0;
-
-					return 0;
+					player.active=0;
+					player.currentImage=1;
 				}
 				else
 				{
@@ -646,8 +663,9 @@ int main(int argc,char *argv[])
 	// Set up player
         spriteSetupFull(&player,"Player",1,0,1);
         spriteAddImageFromLibrary(&player,&lib,4);
-        player.x=128;
-        player.y=252-8;
+
+	// Add explosion images
+	for(i=36;i<44;i++) spriteAddImageFromLibrary(&player,&lib,i);
 
 	// Set up player's bullet
         spriteSetupFull(&player_bullet,"PB",0,0,0);
@@ -670,7 +688,6 @@ int main(int argc,char *argv[])
 		cls(SCREEN);
 		setupMushrooms();
 		printHighScores();
-		putchar('a');
 
 		cls(SCREEN);
 
@@ -678,6 +695,10 @@ int main(int argc,char *argv[])
 		spritePlot(SCREEN,&player);
 
 		player.timer.value=getFrames();
+        	player.x=128;
+    		player.y=252-8;
+		player.currentImage=0;
+		player.active=1;
 		score=0;
 		lives=3;
 
@@ -686,6 +707,13 @@ int main(int argc,char *argv[])
 			unsigned int result;
 
 			printScore();
+
+			player.active=1;
+	        	player.x=128;
+    			player.y=252-8;
+			player.draw=1;
+			player.currentImage=0;
+			spritePlot(SCREEN,&player);
 
 			spider.active=0;
 			spider.timer.value=getFrames()+50;
@@ -703,6 +731,7 @@ int main(int argc,char *argv[])
 					centipede[i].draw=1;
 				}
 			}
+
 
 			if(result)
 			{
