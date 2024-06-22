@@ -390,7 +390,7 @@ int runLife()
 				if((key&2)&&(player.x>XMIN)) newx-=2;
 				if((key&16)&&(player.x<XMAX-8)) newx+=2;	
 				if((key&4)&&(player.y>(256-5*8))) newy-=2;
-				if((key&128)&&(player.y<(255-8-1))) newy+=2;
+				if((key&128)&&(player.y<(255-10-1))) newy+=2;
 
 
 				// Move the player?
@@ -401,7 +401,7 @@ int runLife()
 
 					player.x=newx; player.y=newy;
 
-					player.mask=0; player.draw=1;
+					player.mask=1; player.draw=1;
 					spritePlot(SCREEN,&player);
 				}
 	
@@ -414,6 +414,10 @@ int runLife()
 					player_bullet.timer2.value=0;
 					player_bullet.timer.value=f;
 					//spritePlot(SCREEN,&player_bullet);
+					//
+					
+					player.currentImage=0;
+					spritePlot(SCREEN,&player);
 				}
 
 				player.timer.value=getFrames()+1;
@@ -423,9 +427,9 @@ int runLife()
 				player.mask=1; player.draw=0;
 				spritePlot(SCREEN,&player);
 	
-				if(++player.currentImage==8) return 0; // End of life
+				if(++player.currentImage==10) return 0; // End of life
 
-				player.mask=0; player.draw=1;
+				player.mask=1; player.draw=1;
 				spritePlot(SCREEN,&player);
 	
 				player.timer.value=getFrames()+2;
@@ -450,6 +454,8 @@ int runLife()
 				if(player_bullet.y<8)
 				{
 					player_bullet.active=0;
+					player_bullet.currentImage=0;
+					spritePlot(SCREEN,&player);
 					break;
 				}
 				else
@@ -478,27 +484,51 @@ int runLife()
 						}
 	
 						player_bullet.active=0;
+						player.currentImage=1;
+						spritePlot(SCREEN,&player);
+
 						break;
 					}
 					else if(peek(SCREEN,player_bullet.y+4,player_bullet.x)
 				    	      ||peek(SCREEN,player_bullet.y+8,player_bullet.x))
 					{
 						player_bullet.active=0;
+						player.currentImage=1;
+						spritePlot(SCREEN,&player);
 	
 						if(spider.active)
 						{
 							if((spider.x<=player_bullet.x)&&(spider.x+16>=player_bullet.x)&&(spider.y<=player_bullet.y)&&(spider.y+8>=player_bullet.y))
 							{
+								unsigned int bonus=300,r=fastRand();
+
 								spider.draw=0;
 								spritePlot(SCREEN,&spider);
 								spider.draw=1;
 	
 								spider.active=0;
-	
-								score+=300;
+								spider.timer2.value=25;
+								spider.currentImage=4;
+
+								if(r&1)
+								{
+									bonus+=300;	
+									spider.currentImage++;
+								}
+
+								if(r&2)
+								{
+									bonus+=300;	
+									spider.currentImage++;
+								}
+
+								spritePlot(SCREEN,&spider);
+
+								score+=bonus;
 								printScore();
 							}
 						}
+							
 
 						break;
 					}
@@ -538,7 +568,7 @@ int runLife()
 				{
 					spider.active=0;
 					player.active=0;
-					player.currentImage=1;
+					player.currentImage=3;
 				}
 				else
 				{
@@ -560,6 +590,17 @@ int runLife()
 
 					spider.mask=0; spider.draw=1;
 					spritePlot(SCREEN,&spider);
+				}
+			}
+			else if(spider.timer2.value>0)
+			{
+				if(--spider.timer2.value==0)
+				{
+					spider.draw=0;
+					spritePlot(SCREEN,&spider);
+					spider.draw=1;
+
+					spider.currentImage=0;
 				}
 			}
 			else
@@ -667,7 +708,9 @@ int main(int argc,char *argv[])
 
 	// Set up player
         spriteSetupFull(&player,"Player",1,0,1);
-        spriteAddImageFromLibrary(&player,&lib,4);
+	player.mask=1;
+        spriteAddImageFromLibrary(&player,&lib,46);
+        spriteAddImageFromLibrary(&player,&lib,47);
 
 	// Add explosion images
 	for(i=36;i<44;i++) spriteAddImageFromLibrary(&player,&lib,i);
@@ -687,6 +730,9 @@ int main(int argc,char *argv[])
 	spriteAddImageFromLibrary(&spider,&lib,33);
 	spriteAddImageFromLibrary(&spider,&lib,8);
 	spriteAddImageFromLibrary(&spider,&lib,35);
+	spriteAddImageFromLibrary(&spider,&lib,11);
+	spriteAddImageFromLibrary(&spider,&lib,12);
+	spriteAddImageFromLibrary(&spider,&lib,13);
 
 	while(1)
 	{
@@ -699,11 +745,6 @@ int main(int argc,char *argv[])
 		setupMushrooms();
 		spritePlot(SCREEN,&player);
 
-		player.timer.value=getFrames();
-        	player.x=128;
-    		player.y=252-8;
-		player.currentImage=0;
-		player.active=1;
 		score=0;
 		lives=3;
 
@@ -714,14 +755,16 @@ int main(int argc,char *argv[])
 			printScore();
 
 			player.active=1;
+			player.timer.value=getFrames();
 	        	player.x=128;
-    			player.y=252-8;
+    			player.y=252-10;
 			player.draw=1;
-			player.currentImage=0;
+			player.currentImage=1;
 			spritePlot(SCREEN,&player);
 
 			spider.active=0;
 			spider.timer.value=getFrames()+50;
+			spider.timer2.value=0;
 
 			setupCentipede(getFrames());
       
